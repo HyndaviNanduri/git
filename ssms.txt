@@ -1,0 +1,212 @@
+To create new database: click on new query
+create database dbname;
+inser into tbname (emp_id, name) values (1,'ram');
+############
+Dimension Table:
+create table [dbo].[dimlocation]([pkey] [int] identity(1,1) not null,
+	             [location] [nchar](10) null)
+insert into [dbo].[dimlocation](type) 
+select distinct [type] as type
+    from [dbname].[dbo].[tasks_dw]
+
+select top (1000) [Type],[location],[dept],[month],[amount] 
+from [db].[dbo].[tasks_dw]
+
+truncate table [dbo].[dimlocation]
+insert into [dbo].[dimlocation](type) 
+select distinct [type] as type
+    from [dbname].[dbo].[tasks_dw]
+
+truncate table [dbo].[dimlocation]
+insert into [dbo].[dimlocation] (pkey,month) values(1,'jan')
+
+######################
+Fact table creation: 
+create table [dbo].[FactTasks](
+   [pk] [smallint] null,
+   [pkloc] [smallint] null,
+   [pkdwpt] [smallint] null,
+   [pkmonth] [smallint] null,
+   [amount] [decimal](10,2) null
+on [primary]
+
+insert into [dbo].[FactTasks]
+select  p.pkey as [pkeytype]
+    l.pkey as [pkeyloc]
+    d.pkey as [pkeydept]
+   m.pkey as [pkeymonth],[amount]
+from [dbo].[tasks_dw] t,
+[dbo].[DimDept] d,[dbo].[Dimloc] l,[dbo].[Dimmonth] m,[dbo].[DimType] p
+where t.Dept=d.Dept and
+t.location=l.location and
+t.month=m.month and
+t.type=p.type
+
+
+
+#############################
+Dimension Table:
+-->Dimension Tables contains detailed data
+It has primary keys
+these are joined with fact tables via foreign keys
+Ex: name,fullname,product,address,phone number,custid
+
+Fact Table: 
+--> It contains measures and numerical values
+It contains foreign keys
+It contains duplicate rows
+Ex: Total sales,profit,avg sales,quantity
+	
+in snowflake schema we have another level of dimension
+
+Fact/Measure: what you want to analyse is fact
+	sales,profif,customer preferences
+Dimensions: By which you want to analyse is your dimensions
+	sales by location/product/period
+	profit by location/product/period
+data mart: A data mart is a subset of a data warehouse focused on a particular 
+line of business, department, or subject area.       
+cardinality:cardinality refers to the number of unique values in a relational 
+table column relative to the total number of rows in the table.
+SCD:
+	Tracking historical data in warehouse using scd
+type1: It overrides old with new data, and does not track historical data
+type2: This method tracks historical data by creating multiple records
+           for a given natura key in the dimension tables with separate
+           surrogate keys.preserves unlimited history.
+type3: This method tracks changes using separate columns and 
+            preserves limited history.
+
+########################################################
+**************************************************************************
+explain how to create fact and dimension tables in sql for beginners
+
+
+
+
+
+
+In a relational database, a fact table contains the quantitative data of a business process, and a dimension table contains the descriptive data that helps in analyzing the data in the fact table. Here's a step-by-step guide to creating fact and dimension tables in SQL for beginners:
+
+Step 1: Define the Fact Table
+
+The fact table contains quantitative data and should have foreign keys from the dimension tables. The foreign keys establish the relationship between the fact table and the dimension tables. Here's an example of creating a fact table for sales data:
+
+sql
+Copy code
+CREATE TABLE sales_fact_table (
+   date_key int,
+   product_key int,
+   customer_key int,
+   sales_amount decimal(10, 2),
+   CONSTRAINT fk_date FOREIGN KEY (date_key) REFERENCES date_dimension_table (date_key),
+   CONSTRAINT fk_product FOREIGN KEY (product_key) REFERENCES product_dimension_table (product_key),
+   CONSTRAINT fk_customer FOREIGN KEY (customer_key) REFERENCES customer_dimension_table (customer_key)
+);
+This SQL query creates a sales_fact_table with four columns: date_key, product_key, customer_key, and sales_amount. The three foreign key constraints create relationships with the date_dimension_table, product_dimension_table, and customer_dimension_table.
+
+Step 2: Define the Dimension Tables
+
+The dimension tables contain descriptive data about the business process, and their primary keys are used as foreign keys in the fact table. Here's an example of creating a dimension table for dates:
+
+sql
+Copy code
+CREATE TABLE date_dimension_table (
+   date_key int PRIMARY KEY,
+   date date,
+   day int,
+   month int,
+   year int,
+   quarter int,
+   day_of_week int
+);
+This SQL query creates a date_dimension_table with six columns: date_key, date, day, month, year, quarter, and day_of_week. The date_key is the primary key of this table, and it will be used as a foreign key in the fact table.
+
+Similarly, you can create dimension tables for products and customers with their descriptive data.
+
+Step 3: Load the Data
+
+Once you have created the fact and dimension tables, you can load data into them using SQL INSERT statements. Here's an example of inserting data into the date_dimension_table:
+
+sql
+Copy code
+INSERT INTO date_dimension_table (date_key, date, day, month, year, quarter, day_of_week)
+VALUES
+   (1, '2022-01-01', 1, 1, 2022, 1, 7),
+    (2, '2022-01-02', 2, 1, 2022, 1, 1),
+   (3, '2022-01-03', 3, 1, 2022, 1, 2),
+   ...
+You can follow similar INSERT statements to load data into other dimension tables and the fact table.
+
+Step 4: Query the Data
+
+Once you have loaded the data into the fact and dimension tables, you can write SQL queries to analyze the data. Here's an example of a simple query that aggregates the sales_amount by date:
+
+vbnet
+Copy code
+SELECT date_dimension_table.date, SUM(sales_fact_table.sales_amount) AS total_sales
+FROM sales_fact_table
+JOIN date_dimension_table ON sales_fact_table.date_key = date_dimension_table.date_key
+GROUP BY date_dimension_table.date;
+This query joins the fact table with the date_dimension_table using the foreign key relationship and then aggregates the sales_amount by date.
+
+That's it! You can use these basic steps to create and analyze fact and dimension tables in SQL.
+
+####################################################
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+CREATE TRIGGER trg_calculate_average
+AFTER INSERT OR UPDATE ON your_table
+FOR EACH ROW
+BEGIN
+    DECLARE average DECIMAL(10,2);
+    SELECT AVG(column_name) INTO average FROM your_table;
+    INSERT INTO average_table (average_value) VALUES (average);
+END;
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+**************************************************************
+Creating stored procedure:
+
+create procedure procedure_name
+as 
+begin
+ select  country,product from table_name
+end
+^^^^^^^^^^^^^^^^^^^^^
+Executing sp:
+
+procedure_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+creating stored procedures with input parameters:
+
+create procedure procedure_name
+@country datatype(parameter)
+as 
+select * from table_name where country=@country 
+go
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Executing sp:
+procedure_name 'canada'
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+***********************************************************************************
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+we have 3 tables products,customers,orders.
+select p.name,p.price,c.first_name,c.last_name,o.order_time from products p
+join orders o on p.id=o.product_id
+join customers c on c.id=o.customer_id
+
+
+
+
+
+
+
+
+
+
+
