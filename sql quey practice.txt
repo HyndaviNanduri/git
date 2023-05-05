@@ -1,0 +1,107 @@
+***.
+Write a simple CTE: Start by creating a basic CTE that selects a few columns from a table. For example:
+ANS:
+ with cte as(select id,name,email from cust) select * from cte;
++------+----------+-----------------------+
+| id   | name     | email                 |
++------+----------+-----------------------+
+|  101 | John     | new_email@example.com |
+|  102 | Rachel   | efg@example.com       |
+|  103 | Monica   | pqr@gmail.com         |
+|  101 | John Doe | new_email@example.com |
+|  102 | Rachel   | aabbcc@example.com    |
+|  103 | Monica   | pqr@gmail.com         |
++------+----------+-----------------------+
+6 rows in set (0.00 sec)
+---
+Use a CTE to filter data: Write a CTE that filters rows from a table and then joins that result with another table. For example:
+ANS:
+mysql> select * from officer;
++------+---------+--------------+---------------------+------------+
+| id   | name    | current_city | updated_date        | prev_city  |
++------+---------+--------------+---------------------+------------+
+|  100 | anjali  |  hyderabad   | 2023-02-16 22:52:04 | los angles |
+|  101 | hyndavi |  vizag       | 2023-02-16 22:52:04 | NewYork    |
++------+---------+--------------+---------------------+------------+
+mysql> with filtered_cte as(select id,name from cust where id=101) select f.*,o.updated_date from filtered_cte f join officer o on f.id=o.id ;
++------+----------+---------------------+
+| id   | name     | updated_date        |
++------+----------+---------------------+
+|  101 | John     | 2023-02-16 22:52:04 |
+|  101 | John Doe | 2023-02-16 22:52:04 |
++------+----------+---------------------+
+2 rows in set (0.00 sec)
+
+---
+Use a CTE with a subquery: Write a CTE that includes a subquery to filter data from another table. For example:
+ANS:
+mysql> select * from employees;
++------+---------------+----------------+-------+---------------------+
+| id   | name          | address        | city  | updated_date        |
++------+---------------+----------------+-------+---------------------+
+|  201 | Monica Geller | Andhra Pradesh | vizag | 2023-02-16 22:09:03 |
++------+---------------+----------------+-------+---------------------+
+1 row in set (0.19 sec)
+
+mysql> select * from employees_history;
++------+---------------+----------------+-------+---------------------+
+| id   | name          | address        | city  | updated_date        |
++------+---------------+----------------+-------+---------------------+
+|  201 | Monica        | Andhra Pradesh | vizag | 2023-02-16 22:09:03 |
+|  201 | Rachel        | Andhra Pradesh | vizag | 2023-02-16 22:12:15 |
+|  201 | Monica Geller | Andhra Pradesh | vizag | 2023-02-16 22:14:28 |
++------+---------------+----------------+-------+---------------------+
+3 rows in set (0.01 sec)
+
+mysql> with subquery_cte as (select id,name from employees_history where name in(select name from employees where city='vizag')) select * from subquery_cte;
++------+---------------+
+| id   | name          |
++------+---------------+
+|  201 | Monica Geller |
++------+---------------+
+1 row in set (0.18 sec)
+
+***
+SQL Trigger | Student Database
+A trigger is a stored procedure in databse which automatically invokes
+whenever a special event in the database occurs.
+
+mysql> desc Student; 
++-------+-------------+------+-----+---------+----------------+ 
+| Field | Type        | Null | Key | Default | Extra          | 
++-------+-------------+------+-----+---------+----------------+ 
+| tid   | int(4)      | NO   | PRI | NULL    | auto_increment | 
+| name  | varchar(30) | YES  |     | NULL    |                | 
+| subj1 | int(2)      | YES  |     | NULL    |                | 
+| subj2 | int(2)      | YES  |     | NULL    |                | 
+| subj3 | int(2)      | YES  |     | NULL    |                | 
+| total | int(3)      | YES  |     | NULL    |                | 
+| per   | int(3)      | YES  |     | NULL    |                |
++-------+-------------+------+-----+---------+----------------+ 
+7 rows in set (0.00 sec)
+
+creating trigger before inserting :
+-->created a student table
+mysql> create table Student(tid int not null primary key auto_increment,name varchar(30),subj1 int,subj2 int,subj3 int,total int,per int);
+Query OK, 0 rows affected (0.11 sec)
+-->creating trigger before insert
+mysql> create trigger st_trig  before insert on Student  for each row set new.total=new.subj1+new.subj2+new.subj3,new.per=new.total * 60 / 100;
+Query OK, 0 rows affected (0.22 sec)
+-->inserted a new record
+mysql> insert into Student(name,subj1,subj2,subj3) values('Ravi',20,20,20);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from Student;
++-----+------+-------+-------+-------+-------+------+
+| tid | name | subj1 | subj2 | subj3 | total | per  |
++-----+------+-------+-------+-------+-------+------+
+|   1 | Ravi |    20 |    20 |    20 |    60 |   36 |
++-----+------+-------+-------+-------+-------+------+
+1 row in set (0.00 sec)
+
+
+
+
+
+
+
